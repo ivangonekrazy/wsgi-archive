@@ -8,6 +8,11 @@
 These can be installed via PIP by running:
 `pip install -r pip-requirements.txt`
 
+RarFile itself depends on `unrar`, which can be installed via:
+
+* Ubuntu: `apt-get install unrar`
+* OSX:  `brew install unrar`
+
 ### Running the app
 
 To run a standalone server:
@@ -15,14 +20,14 @@ To run a standalone server:
 `python wsgi-archive.py`
 
 The server will listen on port 8000 by default.
-Any _.zip_ or _.rar_ file in the current directory
+Any __.zip__ or __.rar__ file in the current directory
 will be exposed via the path of the URL.
 
-e.g. _foo.zip_ on the current directory will be exposed
-at _http://localhost:8000/foo.zip_
+e.g. __foo.zip__ on the current directory will be exposed
+at __http://localhost:8000/foo.zip__
 
 Files within the archive are exposed relative to the 
 archive file.
 
-e.g. _/bar/baz.jpg_ in _foo.zip_ are exposed at
-at _http://localhost:8000/foo.zip/bar/baz.jpg_
+e.g. __/bar/baz.jpg__ in __foo.zip__ are exposed at
+at __http://localhost:8000/foo.zip/bar/baz.jpg__
