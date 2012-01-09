@@ -2,3 +2,6 @@ bin/
 include/
 lib/
 .Python
+*.pyc
+*.zip
+*.rar
