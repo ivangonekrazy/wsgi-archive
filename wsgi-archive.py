@@ -1,4 +1,4 @@
-import sys, os.path
+import sys, os.path, os
 import json
 import traceback
 
@@ -24,19 +24,20 @@ def ArchiveFile(path, mode='r'):
     elif ext.lower() == ".rar":
         return RarFile(path, mode)
 
-def build_index(names, archive_path, title="", comment="", index_format="html"):
+def build_index(names, path_root="", title="", comment="", index_format="html"):
     """ build and index """
+
     if index_format == "html":
 
         _ = TagLib()
         html = _.html(
             _.body(
-                _.h4( title or archive_path ),
+                _.h4( title or path_root ),
                 _.h5( comment ),
                 _.ol(
                     [
                     _.li(
-                        _.a({"href":"%s/%s" % (archive_path,n)}, n) )
+                        _.a({"href":"%s/%s" % (path_root,n)}, n) )
                     for n in sorted(names)
                     ]
                 )
@@ -75,29 +76,39 @@ def application(environ, start_response):
 
     # remove the leading slash;
     # don't confuse it with the root on the filesystem
-    archive_path = environ.get('PATH_INFO').lstrip('/')
-
-    # skip paths in the blacklist
-    if archive_path in ['', 'favicon.ico']:
-        return response("", '404 Not Found')
+    archive_file = environ.get('PATH_INFO').lstrip('/')
 
     # grab the index format query string
     query_string = environ.get('QUERY_STRING')
     index_format = dict(parse_qsl(query_string)).get('format', 'html')
     file_filter = dict(parse_qsl(query_string)).get('filter', None)
 
+    # if no archive was given in the URL
+    if archive_file == "":
+        supported_archives = ['.rar', '.zip']
+        archive_names = filter(
+            lambda x: os.path.splitext(x)[1].lower() in supported_archives,
+            os.listdir(os.getcwd()))
+        content, type = build_index(archive_names, index_format=index_format)
+
+        return response(content, content_type=type)
+
+    # skip paths in the blacklist
+    if archive_file in ['favicon.ico']:
+        return response("", '404 Not Found')
+
     try:
 
         # split the archive path off,
         # preserve the path within the archive
-        split_path = archive_path.split('/', 1)
+        split_path = archive_file.split('/', 1)
 
         if len(split_path) > 1:
-            archive_path, file = split_path
+            archive_file, file = split_path
         else:
             file = ""
 
-        archive = ArchiveFile(archive_path, 'r')
+        archive = ArchiveFile(archive_file, 'r')
         names = archive.namelist()
 
         # just the index of the archive
@@ -113,10 +124,10 @@ def application(environ, start_response):
                         '404 Not Found')
 
             # build an HTML index
-            title = archive_path
+            title = archive_file
             comment = archive.comment or ""
             content, type = build_index(
-                names, archive_path,
+                names, archive_file,
                 title=title, comment=comment, index_format=index_format)
 
             return response( content, content_type=type)
