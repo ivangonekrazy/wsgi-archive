@@ -20,13 +20,28 @@ To run a standalone server:
 `python wsgi-archive.py`
 
 The server will listen on port 8000 by default.
-Any __.zip__ or __.rar__ file in the current directory
+
+Any ZIP or RAR file in the current directory
 will be exposed via the path of the URL.
 
-* Any ZIP or RAR fileon the current directory will be exposed
+* Any ZIP or RAR file on the current directory will be exposed
 at __http://localhost:8000/__
 * __foo.zip__ on the current directory will be exposed
 at __http://localhost:8000/foo.zip__
+
+A URL that points to the application root or to just an archive
+file will get an HTML index by default. The index format can be 
+set with the __format={html,json}__ query parameter.
+
+* __http://localhost:8000/baz.zip?format=html__ returns the index of 
+the contents of __baz.zip__ as an HTML page. This is the default.
+
+* __http://localhost:8000/?format=json__ returns the index of 
+ZIP and RAR files in JSON format.
+* __http://localhost:8000/foo.zip?format=json__ returns the index of 
+__foo.zip__ JSON format.
+* __http://localhost:8000/quux.rar?format=json__ returns the index of 
+the contents of __quux.rar__ JSON format.
 
 Files within the archive are exposed relative to the 
 archive file.
