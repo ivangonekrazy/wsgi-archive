@@ -31,3 +31,11 @@ archive file.
 
 e.g. __/bar/baz.jpg__ in __foo.zip__ are exposed at
 at __http://localhost:8000/foo.zip/bar/baz.jpg__
+
+The index can be passed a filter to show only files
+within the archive that have file names that start
+with a given value. 
+
+e.g. __http://localhost:8000/foo.zip?filter=bar__
+will generate an index of all files that start with
+__bar__, which may include __bar.jpg__ and __bar/__
