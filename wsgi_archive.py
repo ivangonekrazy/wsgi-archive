@@ -11,13 +11,16 @@ from wsgiref.util import request_uri
 
 from taglib import TagLib
 
-def ArchiveFile(path, mode='r'):
+ARCHIVE_ROOT = os.environ.get('ARCHIVE_ROOT') or os.getcwd()
+
+def ArchiveFile(path, archive_root="", mode='r'):
     """ Abstract away the difference between zip and rars
         ZipFile and RarFile have similar API's
         makes this easy.
     """
 
     root, ext = os.path.splitext(path)
+    path = os.path.join(archive_root, path)
 
     if ext.lower() == ".zip":
         return ZipFile(path, mode)
@@ -80,15 +83,17 @@ def application(environ, start_response):
 
     # grab the index format query string
     query_string = environ.get('QUERY_STRING')
-    index_format = dict(parse_qsl(query_string)).get('format', 'html')
-    file_filter = dict(parse_qsl(query_string)).get('filter', None)
+    query_dict = dict(parse_qsl(query_string))
+    index_format = query_dict.get('format', 'html')
+    file_filter = query_dict.get('filter', None)
 
-    # if no archive was given in the URL
+    # if no archive was given in the URL, build an index
     if archive_file == "":
         supported_archives = ['.rar', '.zip']
         archive_names = filter(
             lambda x: os.path.splitext(x)[1].lower() in supported_archives,
-            os.listdir(os.getcwd()))
+            os.listdir(ARCHIVE_ROOT)
+            )
         content, type = build_index(archive_names, index_format=index_format)
 
         return response(content, content_type=type)
@@ -108,13 +113,13 @@ def application(environ, start_response):
         else:
             file = ""
 
-        archive = ArchiveFile(archive_file, 'r')
+        archive = ArchiveFile(archive_file, ARCHIVE_ROOT, 'r')
         names = archive.namelist()
 
         # just the index of the archive
         if len(split_path) == 1:
 
-            # filter down to just matching files, if a filte was given
+            # filter down to just matching files, if a filter was given
             if file_filter:
                 names = filter(
                         lambda x: x.startswith(file_filter),
@@ -137,7 +142,7 @@ def application(environ, start_response):
             return response( archive.read(file) )
 
     except IOError, e:
-        return response(str(e), '404 Not Found: %s' % path)
+        return response(str(e), '404 Not Found: %s' % archive_file)
     except KeyError, e:
         return response(str(e), '404 Not Found in archive: %s' % file)
     except Exception, e:
