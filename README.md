@@ -17,9 +17,17 @@ RarFile itself depends on `unrar`, which can be installed via:
 
 To run a standalone server:
 
-`python wsgi-archive.py`
+`python wsgi_archive.py`
 
-The server will listen on port 8000 by default.
+or
+
+`gunicorn wsgi_archive:application`
+
+To serve archives from a particular directory:
+
+`ARCHIVE_ROOT=/home/dir python wsgi_archive.py`
+
+The server will listen on port 8000 of the localhost by default.
 
 Any ZIP or RAR file in the current directory
 will be exposed via the path of the URL.
